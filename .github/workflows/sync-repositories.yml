@@ -21,6 +21,6 @@ jobs:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: |
           git remote add destination \
-            https://x-access-token:${SYNC_TOKEN}@github.com/ACCOUNT_B/REPOSITORY_B.git
+            https://x-access-token:${SYNC_TOKEN}@github.com/Rajneesh-npstx/frontend-main.git
 
           git push destination HEAD:main
