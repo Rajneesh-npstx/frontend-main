@@ -1,0 +1,26 @@
+
+name: Sync Repository A to B
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository A
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push changes to Repository B
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          git remote add destination \
+            https://x-access-token:${SYNC_TOKEN}@github.com/ACCOUNT_B/REPOSITORY_B.git
+
+          git push destination HEAD:main
