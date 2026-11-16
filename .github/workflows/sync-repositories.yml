@@ -21,3 +21,6 @@ jobs:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: |
           git push https://x-access-token:${SYNC_TOKEN}@github.com/Rajneesh-npstx/frontend-main.git HEAD:main
+
+
+          
