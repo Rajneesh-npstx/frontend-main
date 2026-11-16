@@ -130,10 +130,28 @@
     --foreground: #000000;
     --card: #FFFFFF;
     --card-foreground: #000000;
+    --popover: #FFFFFF;
+    --popover-foreground: #000000;
+    --primary: #0000EE;
+    --primary-foreground: #FFFFFF;
+    --secondary: #FFFFFF;
+    --secondary-foreground: #000000;
+    --muted: #FFFFFF;
     --muted-foreground: #1F2937;
+    --accent: #FFFF00;
+    --accent-foreground: #000000;
+    --destructive: #B00020;
     --border: #000000;
     --input: #000000;
     --ring: #000000;
+    --sidebar: #000000;
+    --sidebar-foreground: #FFFFFF;
+    --sidebar-primary: #FFFF00;
+    --sidebar-primary-foreground: #000000;
+    --sidebar-accent: #FFFF00;
+    --sidebar-accent-foreground: #000000;
+    --sidebar-border: #FFFFFF;
+    --sidebar-ring: #FFFF00;
 }
 
 .high-contrast * {

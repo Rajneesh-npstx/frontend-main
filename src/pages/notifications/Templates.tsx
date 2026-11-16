@@ -102,6 +102,7 @@ export default function Templates() {
   const [previewing, setPreviewing] = useState<NotificationTemplate | null>(null);
   const [newCodeOpen, setNewCodeOpen] = useState(false);
   const [newCode, setNewCode] = useState({ appId: '', code: '', name: '', category: 'announcement', description: '' });
+  const [newCodeError, setNewCodeError] = useState('');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const appName = useMemo(() => new Map(apps.map((a) => [a.id, a.name])), [apps]);
@@ -166,7 +167,11 @@ export default function Templates() {
   });
 
   const createCodeMutation = useMutation({
-    mutationFn: () => Promise.resolve(masterDataService.createNotificationCode({ ...newCode, status: 'active' })),
+    mutationFn: () => {
+      const code = newCode.code.trim();
+      if (!/^\d+$/.test(code)) throw new Error('Template code must contain numbers only');
+      return Promise.resolve(masterDataService.createNotificationCode({ ...newCode, code, status: 'active' }));
+    },
     onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ['notification-code-masters'] });
       form.setValue('appId', created.appId);
@@ -533,7 +538,20 @@ export default function Templates() {
           <div className="grid gap-4">
             <div className="space-y-1.5"><Label>Application</Label><Select value={newCode.appId} onValueChange={(appId) => setNewCode((current) => ({ ...current, appId }))}><SelectTrigger><SelectValue>{apps.find((app) => app.id === newCode.appId)?.name ?? 'Select…'}</SelectValue></SelectTrigger><SelectContent>{apps.map((app) => <SelectItem key={app.id} value={app.id}>{app.name}</SelectItem>)}</SelectContent></Select></div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5"><Label>Template code</Label><Input value={newCode.code} onChange={(event) => setNewCode((current) => ({ ...current, code: event.target.value.toUpperCase() }))} placeholder="KEKA_ATTENDANCE_ALERT" /></div>
+              <div className="space-y-1.5">
+                <Label>Template code</Label>
+                <Input
+                  inputMode="numeric"
+                  value={newCode.code}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setNewCodeError(value && !/^\d+$/.test(value.trim()) ? 'Template code must contain numbers only.' : '');
+                    setNewCode((current) => ({ ...current, code: value.replace(/\D/g, '') }));
+                  }}
+                  placeholder="1001"
+                />
+                {newCodeError && <p className="text-xs font-medium text-red-600">{newCodeError}</p>}
+              </div>
               <div className="space-y-1.5"><Label>Template name</Label><Input value={newCode.name} onChange={(event) => setNewCode((current) => ({ ...current, name: event.target.value }))} /></div>
             </div>
             <div className="space-y-1.5"><Label>Description</Label><Textarea value={newCode.description} onChange={(event) => setNewCode((current) => ({ ...current, description: event.target.value }))} /></div>

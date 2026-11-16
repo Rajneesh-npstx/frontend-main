@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Bell,
@@ -11,12 +11,14 @@ import {
   ScrollText,
   Settings,
   Users,
+  LifeBuoy,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { AppLogo } from '@/components/common/AppLogo';
 import { initialsOf } from '@/utils/format';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export interface NavChild {
   label: string;
@@ -92,13 +94,21 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
   const { user } = useAuth();
   const location = useLocation();
   const [manual, setManual] = useState<Record<string, boolean>>({});
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const pathMatches = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const childPathMatches = (path: string) => location.pathname === path;
 
   const isItemActive = (item: NavItem) =>
     item.children
-      ? item.children.some((c) => pathMatches(c.path)) || pathMatches(item.path)
+      ? item.children.some((c) => childPathMatches(c.path)) || pathMatches(item.path)
       : pathMatches(item.path);
 
   const itemButtonClass = (active: boolean) =>
@@ -112,9 +122,17 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
 
   return (
     <aside className="flex h-full flex-col border-r border-sidebar-border bg-sidebar">
-      <div className={cn('flex h-16 shrink-0 items-center border-b border-sidebar-border px-4', collapsed && 'justify-center px-0')}>
+      <div className={cn('flex min-h-16 shrink-0 items-center border-b border-sidebar-border px-4 py-2', collapsed && 'justify-center px-0')}>
         <NavLink to="/" onClick={onNavigate} className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-sky-400" data-testid="sidebar-logo-link">
-          <AppLogo collapsed={collapsed} />
+          <div className={cn('flex flex-col', collapsed && 'items-center')}>
+            <AppLogo collapsed={collapsed} />
+            {!collapsed && (
+              <div className="mt-1 text-[10px] leading-tight text-sidebar-foreground/65">
+                <p>{now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p>{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
+            )}
+          </div>
         </NavLink>
       </div>
 
@@ -148,7 +166,8 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const active = isItemActive(item);
-                const groupOpen = manual[item.label] ?? (item.children?.some((c) => pathMatches(c.path)) ?? false);
+                const parentActive = !item.children && active;
+                const groupOpen = manual[item.label] ?? (item.children?.some((c) => childPathMatches(c.path)) ?? false);
                 const testId = `nav-${testIdOf(item.label)}`;
 
                 if (item.children && !collapsed) {
@@ -157,11 +176,11 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
                       <button
                         type="button"
                         onClick={() => setManual((m) => ({ ...m, [item.label]: !groupOpen }))}
-                        className={itemButtonClass(active)}
+                        className={itemButtonClass(parentActive)}
                         data-testid={`nav-group-${testIdOf(item.label)}`}
                         aria-expanded={groupOpen}
                       >
-                        {active && <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-sky-400" />}
+                        {parentActive && <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-sky-400" />}
                         <Icon className="size-[18px] shrink-0" />
                         <span className="flex-1 text-left">{item.label}</span>
                         <ChevronDown className={cn('size-4 shrink-0 opacity-60 transition-transform duration-200', groupOpen && 'rotate-180')} />
@@ -169,7 +188,7 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
                       {groupOpen && (
                         <ul className="mt-1 space-y-0.5 pl-10">
                           {item.children.map((child) => {
-                            const childActive = pathMatches(child.path);
+                            const childActive = childPathMatches(child.path);
                             return (
                               <li key={child.path}>
                                 <NavLink
@@ -216,6 +235,16 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
+        <button
+          type="button"
+          onClick={() => setSupportOpen(true)}
+          title={collapsed ? 'Help & Support' : undefined}
+          className={cn(itemButtonClass(false), 'mb-3')}
+          data-testid="sidebar-help-support"
+        >
+          <LifeBuoy className="size-[18px] shrink-0" />
+          {!collapsed && <span>Help &amp; Support</span>}
+        </button>
         <div className={cn('flex items-center gap-2.5', collapsed && 'justify-center')}>
           <div className="grid size-8 shrink-0 place-items-center rounded-full bg-blue-500/20 text-[11px] font-bold text-sky-300">
             {initialsOf(user?.name ?? 'NP')}
@@ -228,6 +257,18 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
           )}
         </div>
       </div>
+      <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>How can we help you?</DialogTitle>
+            <DialogDescription>Contact the NPST support team for help with the Shared Services Admin Portal.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-4 text-sm">
+            <a className="block font-medium text-primary hover:underline" href="mailto:support@npst.com">support@npst.com</a>
+            <a className="block text-muted-foreground hover:text-foreground" href="tel:+919876543210">+91 98765 43210</a>
+          </div>
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 }

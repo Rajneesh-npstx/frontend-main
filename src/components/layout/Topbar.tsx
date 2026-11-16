@@ -23,6 +23,9 @@ import {
   RotateCcw,
   Sun,
   Moon,
+  Sparkles,
+  ArrowUp,
+  X,
 } from 'lucide-react';
 import { applicationService, userService } from '@/services/adminService';
 import { notificationService } from '@/services/notificationService';
@@ -45,6 +48,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { timeAgo, initialsOf } from '@/utils/format';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface SearchResult {
   id: string;
@@ -61,6 +65,9 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [askAiOpen, setAskAiOpen] = useState(false);
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiMessage, setAiMessage] = useState('');
   const [accessibility, setAccessibility] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.accessibility) ?? '{"zoom":1,"highContrast":false,"theme":"light"}') as { zoom: number; highContrast: boolean; theme: 'light' | 'dark' }; } catch { return { zoom: 1, highContrast: false, theme: 'light' as const }; }
   });
@@ -208,6 +215,11 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </PopoverContent>
         </Popover>
 
+        <Button variant="ghost" size="sm" title="Ask AI" aria-label="Ask AI" onClick={() => setAskAiOpen(true)} data-testid="topbar-ask-ai-button">
+          <Sparkles className="size-[18px]" />
+          <span className="hidden lg:inline">Ask AI</span>
+        </Button>
+
         {/* Administrative notifications */}
         <Popover>
           <PopoverTrigger
@@ -328,6 +340,30 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <Dialog open={askAiOpen} onOpenChange={setAskAiOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <DialogTitle>Ask AI</DialogTitle>
+                <DialogDescription className="mt-1">Hello, {user?.name ?? 'there'}! How can I help you today?</DialogDescription>
+              </div>
+              <Button variant="ghost" size="icon-sm" aria-label="Close Ask AI" onClick={() => setAskAiOpen(false)}><X className="size-4" /></Button>
+            </div>
+          </DialogHeader>
+          <form onSubmit={(event) => {
+            event.preventDefault();
+            if (!aiQuestion.trim()) return;
+            setAiMessage('AI integration is not configured yet. Please integrate an AI model to enable intelligent responses.');
+          }} className="space-y-3">
+            <Input value={aiQuestion} onChange={(event) => setAiQuestion(event.target.value)} placeholder="Ask me anything about NPST Shared Services..." data-testid="ask-ai-input" />
+            {aiMessage && <p className="rounded-lg border border-border bg-muted p-3 text-sm text-muted-foreground" role="status">{aiMessage}</p>}
+            <DialogFooter>
+              <Button type="submit" disabled={!aiQuestion.trim()} data-testid="ask-ai-submit"><ArrowUp className="size-4" /> Send</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

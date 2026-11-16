@@ -110,6 +110,10 @@ export default function ReminderConfiguration() {
   const [deleting, setDeleting] = useState<ReminderPolicy | null>(null);
   const [selectedPolicyId, setSelectedPolicyId] = useState<string>('');
   const [steps, setSteps] = useState<ScheduleStep[]>([]);
+  const [newCodeOpen, setNewCodeOpen] = useState(false);
+  const [newReasonOpen, setNewReasonOpen] = useState(false);
+  const [newCode, setNewCode] = useState({ code: '', name: '', category: '', description: '' });
+  const [newReason, setNewReason] = useState({ name: '', code: '', description: '' });
 
   const appName = useMemo(() => new Map(apps.map((a) => [a.id, a.name])), [apps]);
 
@@ -248,6 +252,43 @@ export default function ReminderConfiguration() {
       queryClient.invalidateQueries({ queryKey: ['reminder-instances'] });
       toast.success('Reminder schedule saved');
     },
+  });
+
+  const createCodeMutation = useMutation({
+    mutationFn: () => Promise.resolve(masterDataService.createReminderCode({
+      appId: form.getValues('appId'),
+      code: newCode.code.trim(),
+      name: newCode.name.trim(),
+      category: newCode.category.trim(),
+      description: newCode.description.trim(),
+      reasons: [],
+      status: 'active',
+    })),
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: ['reminder-code-masters'] });
+      form.setValue('code', created.code);
+      form.setValue('name', created.name);
+      form.setValue('description', created.description);
+      form.setValue('reason', '');
+      setNewCodeOpen(false);
+      toast.success('Reminder code created');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const createReasonMutation = useMutation({
+    mutationFn: () => {
+      const code = codeMasters.find((item) => item.code === form.getValues('code'));
+      if (!code) throw new Error('Select a reminder code first');
+      return Promise.resolve(masterDataService.addReminderReason(code.id, newReason.name, newReason.code));
+    },
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: ['reminder-code-masters'] });
+      if (updated) form.setValue('reason', newReason.name.trim());
+      setNewReasonOpen(false);
+      toast.success('Reminder reason created');
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const frequency = form.watch('frequency');
@@ -498,6 +539,11 @@ export default function ReminderConfiguration() {
                 <Controller control={form.control} name="code" render={({ field }) => (
                   <Select value={field.value} onValueChange={(value) => {
                     field.onChange(value);
+                    if (value === '__create__') {
+                      setNewCode({ code: '', name: '', category: '', description: '' });
+                      setNewCodeOpen(true);
+                      return;
+                    }
                     const selected = codeMasters.find((item) => item.code === value);
                     if (selected) {
                       form.setValue('name', selected.name);
@@ -506,7 +552,10 @@ export default function ReminderConfiguration() {
                     }
                   }}>
                     <SelectTrigger data-testid="reminder-code-select"><SelectValue>{field.value || 'Select a code…'}</SelectValue></SelectTrigger>
-                    <SelectContent>{codeMasters.filter((item) => item.appId === form.getValues('appId') && item.status === 'active').map((item) => <SelectItem key={item.id} value={item.code}>{item.code}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      {codeMasters.filter((item) => item.appId === form.getValues('appId') && item.status === 'active').map((item) => <SelectItem key={item.id} value={item.code}>{item.code}</SelectItem>)}
+                      <SelectItem value="__create__">+ Create New Reminder Code</SelectItem>
+                    </SelectContent>
                   </Select>
                 )} />
                 {form.formState.errors.code && <p className="text-xs font-medium text-red-600">{form.formState.errors.code.message}</p>}
@@ -550,7 +599,14 @@ export default function ReminderConfiguration() {
                 render={({ field }) => (
                   <div className="space-y-1.5">
                     <Label>Trigger event</Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={(value) => {
+                      if (value === '__create_reason__') {
+                        setNewReason({ name: '', code: '', description: '' });
+                        setNewReasonOpen(true);
+                        return;
+                      }
+                      field.onChange(value);
+                    }}>
                       <SelectTrigger data-testid="reminder-trigger-select">
                         <SelectValue>{TRIGGER_LABELS[field.value]}</SelectValue>
                       </SelectTrigger>
@@ -697,8 +753,12 @@ export default function ReminderConfiguration() {
                         <Label>Reason</Label>
                         <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger data-testid="reminder-reason-select"><SelectValue>{field.value || 'Select a reason…'}</SelectValue></SelectTrigger>
-                          <SelectContent>{(selectedCode?.reasons ?? []).map((reason) => <SelectItem key={reason} value={reason}>{reason}</SelectItem>)}</SelectContent>
+                          <SelectContent>
+                            {(selectedCode?.reasons ?? []).map((reason) => <SelectItem key={reason} value={reason}>{reason}</SelectItem>)}
+                            {selectedCode && <SelectItem value="__create_reason__">+ Add New Reason</SelectItem>}
+                          </SelectContent>
                         </Select>
+                        {selectedCode && <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => setNewReasonOpen(true)}>+ Add New Reason</button>}
                         {form.formState.errors.reason && <p className="text-xs font-medium text-red-600">{form.formState.errors.reason.message}</p>}
                       </div>
                     );
@@ -769,6 +829,31 @@ export default function ReminderConfiguration() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={newCodeOpen} onOpenChange={setNewCodeOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Create New Reminder Code</DialogTitle><DialogDescription>Application: {appName.get(form.getValues('appId')) ?? 'Select an application first'}</DialogDescription></DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5"><Label>Reminder code</Label><Input inputMode="numeric" value={newCode.code} onChange={(e) => setNewCode((v) => ({ ...v, code: e.target.value.replace(/\D/g, '') }))} placeholder="2001" /></div>
+            <div className="space-y-1.5"><Label>Reminder name</Label><Input value={newCode.name} onChange={(e) => setNewCode((v) => ({ ...v, name: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>Category</Label><Input value={newCode.category} onChange={(e) => setNewCode((v) => ({ ...v, category: e.target.value }))} /></div>
+            <div className="space-y-1.5 sm:col-span-2"><Label>Description</Label><Textarea value={newCode.description} onChange={(e) => setNewCode((v) => ({ ...v, description: e.target.value }))} /></div>
+          </div>
+          <DialogFooter><Button variant="outline" onClick={() => setNewCodeOpen(false)}>Cancel</Button><Button onClick={() => createCodeMutation.mutate()} disabled={createCodeMutation.isPending || !form.getValues('appId') || !newCode.code || !newCode.name || !newCode.category || !newCode.description}>Create code</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={newReasonOpen} onOpenChange={setNewReasonOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Add New Reason</DialogTitle><DialogDescription>Reason for {form.getValues('code') || 'the selected reminder code'}.</DialogDescription></DialogHeader>
+          <div className="grid gap-4">
+            <div className="space-y-1.5"><Label>Reason name</Label><Input value={newReason.name} onChange={(e) => setNewReason((v) => ({ ...v, name: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>Reason code</Label><Input value={newReason.code} onChange={(e) => setNewReason((v) => ({ ...v, code: e.target.value.toUpperCase().replace(/\s+/g, '_') }))} placeholder="DOCUMENT_NOT_SUBMITTED" /></div>
+            <div className="space-y-1.5"><Label>Description</Label><Textarea value={newReason.description} onChange={(e) => setNewReason((v) => ({ ...v, description: e.target.value }))} /></div>
+          </div>
+          <DialogFooter><Button variant="outline" onClick={() => setNewReasonOpen(false)}>Cancel</Button><Button onClick={() => createReasonMutation.mutate()} disabled={createReasonMutation.isPending || !newReason.name.trim() || !newReason.code.trim() || !form.getValues('code')}>Create reason</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
