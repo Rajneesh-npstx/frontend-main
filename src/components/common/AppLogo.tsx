@@ -9,7 +9,6 @@ export function AppLogo({ collapsed = false, className }: { collapsed?: boolean;
       {!collapsed && (
         <div className="leading-tight">
           <p className="font-heading text-sm font-bold tracking-tight text-white">NPST Shared Services</p>
-          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-sky-300/80">Admin Portal</p>
         </div>
       )}
     </div>

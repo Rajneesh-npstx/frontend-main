@@ -70,7 +70,6 @@ export default function Login() {
           </div>
           <div className="leading-tight">
             <p className="font-heading text-base font-bold">NPST Shared Services</p>
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-sky-300/80">Admin Portal</p>
           </div>
         </div>
 
@@ -79,7 +78,7 @@ export default function Login() {
             One control plane for every NPST application
           </h1>
           <p className="text-sm leading-relaxed text-slate-300">
-            Centrally administer UI branding, notifications and reminders for Keka HR, SkillUp Lounge, NPST Finance,
+            Centrally administer UI branding, notifications and reminders for PeopleOS, SkillUp Lounge, NPST Finance,
             Deal Pulse and every internal application that consumes NPST Shared Services.
           </p>
           <div className="space-y-4">

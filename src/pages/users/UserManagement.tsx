@@ -148,8 +148,8 @@ export default function UserManagement() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Employee Management"
-        description="Manage employee access and editable employee information across connected applications."
+        title="User Management"
+        description="Manage user access and editable user information across connected applications."
         testId="employees-title"
         actions={
           <Button onClick={openCreate} data-testid="add-user-button">

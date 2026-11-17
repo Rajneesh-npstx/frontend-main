@@ -77,7 +77,7 @@ export const NAV_SECTIONS: { section: string; items: NavItem[] }[] = [
   {
     section: 'Administration',
     items: [
-      { label: 'Employee Management', icon: Users, path: '/users' },
+      { label: 'User Management', icon: Users, path: '/users' },
       { label: 'Audit Logs', icon: ScrollText, path: '/audit-logs' },
       { label: 'Settings', icon: Settings, path: '/settings' },
     ],
@@ -263,7 +263,7 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>How can we help you?</DialogTitle>
-            <DialogDescription>Contact the NPST support team for help with the Shared Services Admin Portal.</DialogDescription>
+            <DialogDescription>Contact the NPST support team for help with Shared Services.</DialogDescription>
           </DialogHeader>
           <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-4 text-sm">
             <a className="block font-medium text-primary hover:underline" href="mailto:support@npst.com">support@npst.com</a>

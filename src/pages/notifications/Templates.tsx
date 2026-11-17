@@ -76,7 +76,7 @@ type TemplateFormValues = z.infer<typeof templateSchema>;
 
 const SAMPLE_VARS: Record<string, string> = {
   employeeName: 'Priya Sharma',
-  applicationName: 'Keka HR',
+  applicationName: 'PeopleOS',
   dueDate: format(addDays(new Date(), 7), 'dd MMM yyyy'),
   taskName: 'Q3 report submission',
   managerName: 'Rohit Kulkarni',
@@ -370,7 +370,7 @@ export default function Templates() {
             <div className="notification-form-grid">
               <div className="space-y-1.5">
                 <Label htmlFor="tpl-name">Template name</Label>
-                <Input id="tpl-name" placeholder="e.g. Keka — Leave Reminder" {...form.register('name')} data-testid="template-name-input" />
+                <Input id="tpl-name" placeholder="e.g. PeopleOS — Leave Reminder" {...form.register('name')} data-testid="template-name-input" />
                 {form.formState.errors.name && <p className="text-xs font-medium text-red-600">{form.formState.errors.name.message}</p>}
               </div>
               <div className="space-y-1.5">

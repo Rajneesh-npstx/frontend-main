@@ -77,6 +77,9 @@ export interface NpstApplication {
   employees?: number;
   lastUpdated: string;
   registrationDate?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletedBy?: string;
 }
 
 export interface BrandingStyle {
@@ -134,6 +137,8 @@ export interface BrandingVersion {
 export interface BrandingApprovalRequest {
   id: string;
   appId: string;
+  scope: 'SINGLE_APPLICATION' | 'ALL_APPLICATIONS';
+  targetApplicationIds: string[];
   requestedBy: string;
   submittedAt: string;
   previousStyle: BrandingStyle;
