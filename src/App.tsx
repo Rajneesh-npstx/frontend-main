@@ -17,6 +17,7 @@ import ReminderHistory from '@/pages/reminders/ReminderHistory';
 import UserManagement from '@/pages/users/UserManagement';
 import AuditLogs from '@/pages/audit/AuditLogs';
 import Settings from '@/pages/settings/Settings';
+import AISummary from '@/pages/AISummary';
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="reminders/configuration" element={<ReminderConfiguration />} />
         <Route path="reminders/escalations" element={<EscalationManagement />} />
         <Route path="reminders/history" element={<ReminderHistory />} />
+        <Route path="ai-summary" element={<AISummary />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="audit-logs" element={<AuditLogs />} />
         <Route path="settings" element={<Settings />} />

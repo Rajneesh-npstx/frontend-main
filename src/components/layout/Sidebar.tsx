@@ -12,6 +12,7 @@ import {
   Settings,
   Users,
   LifeBuoy,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -70,6 +71,7 @@ export const NAV_SECTIONS: { section: string; items: NavItem[] }[] = [
           { label: 'Escalations', path: '/reminders/escalations' },
         ],
       },
+      { label: 'AI Summary', icon: Sparkles, path: '/ai-summary' },
     ],
   },
   {
