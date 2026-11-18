@@ -107,6 +107,9 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
   const pathMatches = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname === path || location.pathname.startsWith(`${path}/`);
   const childPathMatches = (path: string) => location.pathname === path;
+  const visibleSections = user?.role === 'Employee'
+    ? [{ section: 'Employee Services', items: [{ label: 'My Dashboard', icon: LayoutDashboard, path: '/employee' }] }]
+    : NAV_SECTIONS;
 
   const isItemActive = (item: NavItem) =>
     item.children
@@ -156,7 +159,7 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: Sid
       )}
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4" data-testid="sidebar-nav">
-        {NAV_SECTIONS.map((section) => (
+        {visibleSections.map((section) => (
           <div key={section.section}>
             {!collapsed && (
               <p className="px-2.5 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/50">

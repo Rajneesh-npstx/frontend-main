@@ -48,11 +48,13 @@ import {
 import { formatDate, initialsOf, timeAgo } from '@/utils/format';
 import type { User, UserRole } from '@/types';
 
-const ROLES: UserRole[] = ['Super Admin', 'Admin', 'Application Admin', 'Employee'];
+const ROLES: UserRole[] = ['Super Admin', 'Admin', 'Maker', 'Checker', 'Application Admin', 'Employee'];
 
 const ROLE_TONES: Record<UserRole, string> = {
   'Super Admin': 'bg-blue-50 text-blue-700 ring-blue-600/20',
   Admin: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+  Maker: 'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
+  Checker: 'bg-violet-50 text-violet-700 ring-violet-600/20',
   'Application Admin': 'bg-amber-50 text-amber-700 ring-amber-600/20',
   Employee: 'bg-slate-100 text-slate-600 ring-slate-500/20',
 };
@@ -61,7 +63,7 @@ const userSchema = z.object({
   name: z.string().min(2, 'Name is required'),
   email: z.string().email('Enter a valid email address'),
   phone: z.string().regex(/^\+?[0-9\s-]{10,15}$/, 'Enter a valid phone number').or(z.literal('')),
-  role: z.enum(['Super Admin', 'Admin', 'Application Admin', 'Employee']),
+  role: z.enum(['Super Admin', 'Admin', 'Maker', 'Checker', 'Application Admin', 'Employee']),
   apps: z.array(z.string()).min(1, 'Assign at least one application'),
   status: z.enum(['active', 'inactive']),
 });
